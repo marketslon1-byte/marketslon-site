@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>marketslon | Розробка сайтів, CRM та автоматизація</title>
+    <style>
+        /* Фірмові кольори та плавна прокрутка */
+        html { scroll-behavior: smooth; }
+        :root {
+            --dark-blue: #1c364c; 
+            --orange: #f27324;    
+            --turquoise: #2bc0d4; 
+            --text-main: #222222;
+        }
+
+        /* Базові стилі */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { color: var(--text-main); line-height: 1.6; overflow-x: hidden; background-color: #f8fafc; }
+        a { text-decoration: none; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 10; }
+
+        /* Анімований відео-фон */
+        .bg-video-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; overflow: hidden; }
+        .bg-video { width: 100vw; height: 100vh; object-fit: cover; opacity: 0.25; }
+
+        @media (max-width: 768px) {
+            .bg-video {
+                object-fit: contain;
+                background-color: #f8fafc;
+            }
+        }
+
+        .btn { display: inline-block; background-color: var(--orange); color: #fff; padding: 14px 28px; border-radius: 6px; font-weight: bold; font-size: 1.1rem; transition: 0.3s; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(242, 115, 36, 0.3); }
+        .btn:hover { background-color: #d9621b; transform: translateY(-2px); }
+
+        /* Шапка */
+        header { width: 100%; background-color: transparent; position: relative; z-index: 20; }
+        .header-content { max-width: 1400px; margin: 0 auto; padding: 25px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .logo img { height: 220px; object-fit: contain; cursor: pointer; }
+        
+        /* Меню */
+        .nav-menu { display: flex; gap: 35px; align-items: center; }
+        .nav-menu a { color: var(--dark-blue); font-weight: 700; font-size: 1.15rem; transition: 0.3s; text-shadow: 0 1px 5px rgba(255, 255, 255, 0.8); }
+        .nav-menu a:hover { color: var(--orange); }
+
+        /* Головний екран */
+        .hero { display: flex; align-items: center; justify-content: space-between; padding: 40px 0 80px 0; gap: 40px; }
+        .hero-text { max-width: 50%; }
+        .hero h1 { color: var(--dark-blue); font-size: 2.8rem; margin-bottom: 20px; line-height: 1.2; font-weight: 800; text-shadow: 0 2px 12px rgba(255, 255, 255, 0.9); }
+        .hero h1 span { color: var(--orange); }
+        .hero p { font-size: 1.25rem; margin-bottom: 30px; color: #1a2b3c; border-left: 5px solid var(--turquoise); padding-left: 15px; font-weight: 600; text-shadow: 0 1px 8px rgba(255, 255, 255, 0.9); }
+        
+        .hero-features { width: 45%; display: flex; flex-direction: column; gap: 20px; }
+        .feature-badge { padding: 5px 0 5px 15px; border-left: 4px solid var(--orange); transition: 0.3s; }
+        .feature-badge:nth-child(2) { border-left-color: var(--turquoise); }
+        .feature-badge:nth-child(3) { border-left-color: var(--dark-blue); }
+        .feature-badge:hover { transform: translateX(5px); }
+        .feature-badge h4 { color: var(--dark-blue); font-size: 1.25rem; margin-bottom: 5px; font-weight: 700; text-shadow: 0 1px 6px rgba(255, 255, 255, 0.9); }
+        .feature-badge p { color: #222; font-size: 1.05rem; margin: 0; font-weight: 600; text-shadow: 0 1px 6px rgba(255, 255, 255, 0.9); }
+
+        /* Плаваючі віджети справа (ТГ і Телефон) */
+        .floating-widgets { position: fixed; right: 35px; bottom: 100px; display: flex; flex-direction: column; gap: 15px; z-index: 9998; align-items: center; }
+        .widget-btn { width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; border: none; }
+        .widget-btn:hover { transform: scale(1.1); }
+        .widget-btn svg { width: 26px; height: 26px; fill: white; }
+        .btn-tg { background-color: #3b5998; position: relative; }
+        .btn-phone { background-color: #4a76a8; }
+
+        /* Стилі для меню вибору під синьою кнопкою */
+        .messenger-menu {
+            position: absolute;
+            right: 65px;
+            bottom: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px;
+            width: 170px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+            z-index: 10000;
+        }
+        .messenger-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+        .messenger-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--dark-blue);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            background: #f8fafc;
+        }
+        .messenger-item:hover {
+            background: #e2e8f0;
+            color: var(--orange);
+        }
+
+        /* Кнопка "Вгору" (зліва) */
+        .scroll-top-btn {
+            position: fixed; left: 20px; bottom: 30px; width: 50px; height: 50px; 
+            background-color: var(--turquoise); color: white; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; 
+            cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+            opacity: 0; pointer-events: none; transition: 0.3s; z-index: 9999; border: none;
+        }
+        .scroll-top-btn.visible { opacity: 1; pointer-events: auto; }
+        .scroll-top-btn:hover { background-color: #23a0b0; transform: translateY(-3px); }
+        .scroll-top-btn svg { width: 26px; height: 26px; fill: white; }
+
+        /* =========================================
+            КАСТОМНИЙ ВІДЖЕТ ЧАТУ
+            ========================================= */
+        .custom-chat-wrapper {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 10000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .chat-toggle-btn {
+            width: 60px;
+            height: 60px;
+            background-color: var(--turquoise);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: 0.3s;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+        .chat-toggle-btn:hover { transform: scale(1.05); background-color: #23a0b0; }
+        .chat-toggle-btn svg { width: 30px; height: 30px; fill: white; }
+
+        .chat-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 360px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        .chat-window.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .chat-header {
+            background-color: var(--dark-blue);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+        .chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: 0.2s;
+        }
+        .chat-close:hover { opacity: 1; transform: scale(1.1); }
+
+        .chat-body {
+            padding: 20px 15px;
+            background-color: #f8fafc;
+            max-height: 420px;
+            min-height: 280px;
+            overflow-y: auto;
+        }
+        .chat-bubble {
+            background-color: #e2e8f0;
+            padding: 10px 14px;
+            border-radius: 12px 12px 12px 2px;
+            font-size: 0.95rem;
+            color: #333;
+            margin-bottom: 15px;
+            display: inline-block;
+            max-width: 85%;
+        }
+        .chat-bubble.admin {
+            background-color: var(--turquoise);
+            color: white;
+            border-radius: 12px 12px 2px 12px;
+            float: right;
+            clear: both;
+        }
+        .chat-bubble.manager {
+            background-color: #e2e8f0;
+            color: #333;
+            border-radius: 12px 12px 12px 2px;
+            float: left;
+            clear: both;
+        }
+
+        .chat-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            clear: both;
+            margin-top: 10px;
+        }
+        .chat-form textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            resize: none;
+            height: 75px;
+        }
+        .chat-form textarea:focus { border-color: var(--turquoise); }
+        .chat-form button {
+            background-color: var(--turquoise);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .chat-form button:hover { background-color: #23a0b0; }
+
+        /* Послуги (Картки) */
+        .services { padding: 90px 0 40px 0; text-align: center; position: relative; z-index: 10; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px); }
+        .services h2 { color: var(--dark-blue); font-size: 2.5rem; margin-bottom: 50px; }
+        .services h2 span { color: var(--turquoise); }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; }
+        .card { background-color: #fff; padding: 40px 30px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); transition: 0.3s; text-align: left; display: flex; flex-direction: column; justify-content: space-between;}
+        .card:nth-child(odd) { border-top: 5px solid var(--turquoise); }
+        .card:nth-child(even) { border-top: 5px solid var(--orange); }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .card h3 { color: var(--dark-blue); margin-bottom: 15px; font-size: 1.4rem; }
+        .card p { margin-bottom: 20px; }
+        .card-link { color: var(--turquoise); font-weight: bold; font-size: 1.05rem; display: inline-block; transition: 0.3s; margin-top: auto; }
+        .card-link:hover { color: var(--orange); transform: translateX(5px); }
+
+        /* Детальний опис послуг */
+        .service-details { padding: 20px 0 90px 0; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px); position: relative; z-index: 10; }
+        .details-grid { display: grid; grid-template-columns: 1fr; gap: 40px; max-width: 900px; margin: 0 auto; }
+        .detail-box { 
+            background: #fff; padding: 40px; border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06); 
+            border-left: 5px solid var(--dark-blue); 
+            scroll-margin-top: 40px; 
+        }
+        .detail-box:nth-child(even) { border-left-color: var(--orange); }
+        .detail-box:nth-child(3) { border-left-color: var(--turquoise); }
+        .detail-box h3 { color: var(--dark-blue); margin-bottom: 15px; font-size: 1.8rem; }
+        .detail-box p { color: #333; font-size: 1.15rem; line-height: 1.7; font-weight: 500; }
+
+        /* Про нас */
+        .about { padding: 90px 0; text-align: center; position: relative; z-index: 10; }
+        .about h2 { color: var(--dark-blue); font-size: 2.5rem; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(255,255,255,0.9); }
+        .about h2 span { color: var(--orange); }
+        .about-content { max-width: 800px; margin: 0 auto; font-size: 1.15rem; color: #222; font-weight: 600; line-height: 1.8; text-shadow: 0 1px 6px rgba(255,255,255,0.9); }
+        .about-content p { margin-bottom: 20px; }
+
+        /* Підвал / Контакти */
+        footer { background-color: #112233; color: #fff; padding: 80px 0 30px; text-align: center; position: relative; z-index: 10; }
+        footer h2 { color: var(--orange); font-size: 2.2rem; margin-bottom: 15px; }
+        .contact-info { margin-bottom: 35px; font-size: 1.1rem; color: #aab; }
+        .contact-info a { color: var(--turquoise); font-weight: bold; margin: 0 10px; transition: 0.3s; }
+        .contact-info a:hover { color: var(--orange); }
+        
+        .contact-form { max-width: 450px; margin: 0 auto 50px; display: flex; flex-direction: column; gap: 20px; background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px; border: 1px solid rgba(43, 192, 212, 0.3); }
+        .contact-form input { padding: 15px; border-radius: 6px; border: 1px solid #445566; background-color: #1c364c; color: #fff; font-size: 1.1rem; }
+        .btn-submit { width: 100%; }
+
+        @media (max-width: 768px) {
+            .header-content { padding: 15px 20px; flex-direction: column; gap: 15px; }
+            .nav-menu { gap: 15px; flex-wrap: wrap; justify-content: center; }
+            .hero { flex-direction: column; text-align: center; padding: 40px 0; }
+            .hero-text { max-width: 100%; margin-bottom: 20px; }
+            .hero-features { width: 100%; align-items: center; }
+            .feature-badge { border-left: none; border-bottom: 4px solid var(--orange); padding: 0 0 10px 0; }
+            .chat-window { bottom: 70px; width: 300px; right: -10px; }
+            .floating-widgets { right: 25px; bottom: 100px; }
+        }
+    </style>
+</head>
+<body id="home">
+
+    <!-- Анімований відео-фон -->
+    <div class="bg-video-container">
+        <video class="bg-video" autoplay muted loop playsinline>
+            <source src="Polygonal_elephant.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Плаваючі віджети справа -->
+    <div class="floating-widgets">
+        <!-- Синя кнопка зі стрілочкою та випадаючим меню -->
+        <button class="widget-btn btn-tg" onclick="toggleMessengerMenu(event)" title="Зв'язатися з нами">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+        
+        <!-- Випадаюче меню -->
+        <div id="messengerMenu" class="messenger-menu">
+            <a href="https://t.me/A_max_N" target="_blank" class="messenger-item">
+                💬 Telegram
+            </a>
+            <a href="viber://chat?number=%2B380967055822" class="messenger-item">
+                📱 Viber
+            </a>
+            <a href="https://wa.me/380967055822" target="_blank" class="messenger-item">
+                📞 WhatsApp
+            </a>
+            <a href="mailto:marketslon@gmail.com" class="messenger-item">
+                ✉️ Пошта
+            </a>
+        </div>
+
+        <a href="tel:+380967055822" class="widget-btn btn-phone" title="Зателефонувати">
+            <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+        </a>
+    </div>
+
+    <!-- ВЛАСНИЙ ВІДЖЕТ ЧАТУ -->
+    <div class="custom-chat-wrapper">
+        <div id="chatWindow" class="chat-window">
+            <div class="chat-header">
+                <span>marketslon</span>
+                <button class="chat-close" onclick="closeChat()">✖</button>
+            </div>
+            <div class="chat-body" id="chatBody">
+                <div class="chat-bubble manager">Вітаємо!! Який проєкт вас цікавить? 🐘</div>
+                
+                <form id="chatForm" class="chat-form" onsubmit="sendToTelegram(event)">
+                    <textarea id="chatMsg" rows="3" placeholder="Введіть повідомлення..." required></textarea>
+                    <button type="submit" id="chatSubmitBtn">Відправити</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="chat-toggle-btn" onclick="toggleChat()">
+            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+    </div>
+
+    <!-- Кнопка "Вгору" зліва -->
+    <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">
+        <svg viewBox="0 0 24 24"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg>
+    </button>
+
+    <!-- Шапка з логотипом та меню -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="#home"><img src="Маркетслон_с_синим-removebg-preview.png" alt="marketslon логотип"></a>
+            </div>
+            <nav class="nav-menu">
+                <a href="#about">Про нас</a>
+                <a href="#contact">Контакти</a>
+            </nav>
+            <a href="#contact" class="btn">Обговорити проєкт</a>
+        </div>
+    </header>
+
+    <!-- Головний екран -->
+    <div class="container">
+        <section class="hero">
+            <div class="hero-text">
+                <h1>Масштабуйте бізнес з <span>сучасними IT-рішеннями</span></h1>
+                <p>Розробка сайтів, відео, CRM-систем та автоматизація під ключ. Економимо ваш час та збільшуємо продажі.</p>
+                <a href="#contact" class="btn">Отримати консультацію</a>
+            </div>
+            <div class="hero-features">
+                <div class="feature-badge">
+                    <h4>🌐 Сайти та Лендінги</h4>
+                    <p>Сучасні адаптивні сайти, які приваблюють клієнтів і продають ваші послуги 24/7.</p>
+                </div>
+                <div class="feature-badge">
+                    <h4>📊 CRM-системи</h4>
+                    <p>Зручний облік клієнтів, контроль замовлень та порядок у внутрішніх процесах бізнесу.</p>
+                </div>
+                <div class="feature-badge">
+                    <h4>🤖 Telegram-боти</h4>
+                    <p>Автоматичний прийом заявок, запис клієнтів та миттєві сповіщення для вашої команди.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Послуги (Картки) -->
+    <section class="services">
+        <div class="container">
+            <h2>Що ми <span>робимо</span></h2>
+            <div class="cards">
+                <div class="card">
+                    <h3>Сайти та Лендінги</h3>
+                    <p>Сучасні односторінкові та корпоративні сайти з високою конверсією. Швидка робота та адаптивний дизайн.</p>
+                    <a href="#detail-web" class="card-link">Детальніше ↓</a>
+                </div>
+                <div class="card">
+                    <h3>CRM-системи</h3>
+                    <p>Індивідуальні бази даних для обліку клієнтів, управління процесами та генерації звітності.</p>
+                    <a href="#detail-crm" class="card-link">Детальніше ↓</a>
+                </div>
+                <div class="card">
+                    <h3>Telegram-боти</h3>
+                    <p>Автоматизація спілкування, прийом заявок та миттєві сповіщення для вашої команди.</p>
+                    <a href="#detail-bot" class="card-link">Детальніше ↓</a>
+                </div>
+                <div class="card">
+                    <h3>Відеопродакшен</h3>
+                    <p>Створення коротких рекламних форматів та відеопрезентацій для просування ваших послуг.</p>
+                    <a href="#detail-video" class="card-link">Детальніше ↓</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Детальний опис послуг -->
+    <section class="service-details">
+        <div class="container details-grid">
+            <div id="detail-web" class="detail-box">
+                <h3>🌐 Сайти та Лендінги</h3>
+                <p><strong>Розробка під ключ.</strong> Ми не просто малюємо дизайн, а беремо на себе всі технічні питання. Допоможемо з вибором та підключенням домену, надійного хостингу. Виконаємо повне налаштування автоматизації та вивантаження даних, щоб ваш сайт працював як повноцінний інструмент продажів, а не просто картинка в інтернеті.</p>
+            </div>
+            <div id="detail-crm" class="detail-box">
+                <h3>📊 CRM-системи</h3>
+                <p><strong>Рішення для вашого бізнесу.</strong> Ми розуміємо, як працюють реальні бізнес-процеси, тому не пропонуємо шаблонних рішень. Допоможемо ефективно вибудувати CRM-систему з урахуванням унікальних потреб саме вашої компанії. Контроль співробітників, облік фінансів, зручне ведення клієнтської бази — все в одному місці.</p>
+            </div>
+            <div id="detail-bot" class="detail-box">
+                <h3>🤖 Telegram-боти</h3>
+                <p><strong>Автоматизація нового рівня.</strong> Розробляємо складні багаторівневі боти з інтеграцією штучного інтелекту (ШІ). Забезпечуємо повну синхронізацію бота з вашою CRM-системою або веб-сайтом. Бот зможе самостійно консультувати клієнтів, приймати заявки та передавати їх менеджеру без втрати інформації.</p>
+            </div>
+            <div id="detail-video" class="detail-box">
+                <h3>🎬 Відеопродакшен</h3>
+                <p><strong>Контент, що продає.</strong> Спеціалізуємось на створенні коротких рекламних відео та яскравої динамічної анімації. Це ідеальний формат для швидкого привернення уваги цільової аудиторії в соціальних мережах, презентації послуг або запуску таргетованої реклами.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Про нас -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>Про <span>нас</span></h2>
+            <div class="about-content">
+                <p><strong>marketslon</strong> — це команда досвідчених розробників та маркетологів, яка допомагає бізнесу рости за допомогою ефективних IT-інструментів.</p>
+                <p>Ми не просто створюємо сайти чи налаштовуємо ботів. Ми заглиблюємося у ваші бізнес-процеси та пропонуємо рішення, що звільняють ваш час, структурують роботу з клієнтами та збільшують прибуток. Наш підхід — це сучасні технології, зрозумілі результати та надійна підтримка на кожному етапі.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Підвал -->
+    <footer id="contact">
+        <div class="container">
+            <h2>Готові автоматизувати продажі?</h2>
+            <p style="margin-bottom: 20px; color: #aab; font-size: 1.1rem;">Залиште свої контакти, і ми зв'яжемося з вами для обговорення деталей.</p>
+            
+            <div class="contact-info">
+                <p style="line-height: 1.8;">
+                    Телефон (Viber, WhatsApp): <a href="tel:+380967055822">+38 (096) 705-58-22</a><br>
+                    Telegram: <a href="https://t.me/A_max_N" target="_blank">@A_max_N</a> | 
+                    Email: <a href="mailto:marketslon@gmail.com">marketslon@gmail.com</a>
+                </p>
+            </div>
+            
+            <form class="contact-form" action="#" method="POST" onsubmit="event.preventDefault(); alert('Дані готові до відправки в Telegram!');">
+                <input type="text" placeholder="Ваше ім'я" required>
+                <input type="text" placeholder="Телефон / Telegram" required>
+                <button type="submit" class="btn btn-submit">Відправити заявку</button>
+            </form>
+            <div style="color: #667788; border-top: 1px solid #2a4e6c; padding-top: 30px;">
+                © 2026 marketslon. Всі права захищені.
+            </div>
+        </div>
+    </footer>
+
+    <!-- СКРИПТ ВІДЖЕТА ТА GOOGLE APPS SCRIPT -->
+    <script>
+        const chatWindow = document.getElementById('chatWindow');
+        const chatBody = document.getElementById('chatBody');
+        
+        // Генерация уникального ID сессии для клиента
+        let clientId = localStorage.getItem('marketslon_client_id');
+        if (!clientId) {
+            clientId = 'user_' + Math.random().toString(36).substring(2, 11);
+            localStorage.setItem('marketslon_client_id', clientId);
+        }
+
+        // URL вашего Google Apps Script
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbztaCr8xu9yW0eh1c9ISFBrFYnnf3upp2tnERlSkH_UfiF09lT_cr3f-0yP5nZuOehMrw/exec';
+
+        // Открытие/закрытие меню выбора мессенджеров под синей кнопкой
+        function toggleMessengerMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('messengerMenu');
+            menu.classList.toggle('active');
+        }
+
+        // Клік поза меню закриває його
+        window.addEventListener('click', function() {
+            const menu = document.getElementById('messengerMenu');
+            if (menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
+
+        function toggleChat() {
+            chatWindow.classList.toggle('active');
+        }
+
+        function closeChat() {
+            chatWindow.classList.remove('active');
+            sessionStorage.setItem('chatClosedByUser', 'true');
+        }
+
+        setTimeout(() => {
+            if (!sessionStorage.getItem('chatClosedByUser')) {
+                chatWindow.classList.add('active');
+            }
+        }, 5000);
+
+        window.addEventListener('scroll', function() {
+            const scrollBtn = document.getElementById('scrollTopBtn');
+            if (window.scrollY > 400) {
+                scrollBtn.classList.add('visible');
+            } else {
+                scrollBtn.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Отправка сообщения на сервер Google
+        function sendToTelegram(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('chatSubmitBtn');
+            const msgInput = document.getElementById('chatMsg');
+            
+            const message = msgInput.value.trim();
+            if (!message) return;
+
+            btn.innerText = 'Відправляємо...';
+            btn.disabled = true;
+
+            // Добавляем сообщение клиента в интерфейс чата локально (справа)
+            const userBubble = document.createElement('div');
+            userBubble.className = 'chat-bubble admin';
+            userBubble.innerText = message;
+            
+            const form = document.getElementById('chatForm');
+            chatBody.insertBefore(userBubble, form);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Отправка запроса с Content-Type: text/plain для обхода блокировки CORS
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    message: message,
+                    contact: 'Анонімно',
+                    clientId: clientId
+                })
+            })
+            .then(response => response.json())
+            .then(() => {
+                msgInput.value = '';
+                btn.innerText = 'Відправити';
+                btn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Помилка з\'єднання. Спробуйте ще раз.');
+                btn.innerText = 'Відправити';
+                btn.disabled = false;
+            });
+        }
+
+        // Автоматический опрос сервера Google каждые 4 секунды: проверка ответа от менеджера
+        setInterval(() => {
+            fetch(`${GAS_URL}?action=poll&clientId=${clientId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.reply) {
+                        // Показываем ответ администратора в чате (слева)
+                        const adminBubble = document.createElement('div');
+                        adminBubble.className = 'chat-bubble manager';
+                        adminBubble.innerText = data.reply;
+                        
+                        const form = document.getElementById('chatForm');
+                        chatBody.insertBefore(adminBubble, form);
+                        chatBody.scrollTop = chatBody.scrollHeight;
+                        
+                        // Если чат был закрыт, открываем его при получении нового сообщения
+                        if (!chatWindow.classList.contains('active')) {
+                            chatWindow.classList.add('active');
+                        }
+                    }
+                })
+                .catch(err => console.error('Ошибка опроса:', err));
+        }, 4000);
+    </script>
+</body>
+</html>
